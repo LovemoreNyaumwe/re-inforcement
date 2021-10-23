@@ -18,6 +18,7 @@ from featureExtractors import *
 
 import random,util,math
 
+
 class QLearningAgent(ReinforcementAgent):
     """
       Q-Learning Agent
@@ -41,14 +42,8 @@ class QLearningAgent(ReinforcementAgent):
     def __init__(self, **args):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
-        self.values = util.Counter()  # A Counter is a dict with default 0
-        #print(self.values)
-        # self.startEpisode()
-        # print(self.values.get(self.lastState))
-        # self.stopEpisode()
-        #if self.lastState
-
         "*** YOUR CODE HERE ***"
+        self.values = util.Counter()  # A Counter is a dict with default 0
 
     def getQValue(self, state, action):
         """
@@ -61,8 +56,6 @@ class QLearningAgent(ReinforcementAgent):
             return self.values.get((state, action))
         else:
             return 0.0
-        #util.raiseNotDefined()
-
 
     def computeValueFromQValues(self, state):
         """
@@ -73,12 +66,11 @@ class QLearningAgent(ReinforcementAgent):
         """
         "*** YOUR CODE HERE ***"
         legalActions = self.getLegalActions(state)
-        if legalActions is not None:
-            qvalues = [self.values.get((state, action)) for action in legalActions]
+        if len(legalActions) != 0:
+            qvalues = [self.getQValue(state, action) for action in legalActions]
             return max(qvalues)
         else:
             return 0.0
-        #util.raiseNotDefined()
 
     def computeActionFromQValues(self, state):
         """
@@ -88,15 +80,14 @@ class QLearningAgent(ReinforcementAgent):
         """
         "*** YOUR CODE HERE ***"
         legalActions = self.getLegalActions(state)
-        if legalActions is not None:
-            qvalues = [self.values.get((state, action)) for action in legalActions]
+        if len(legalActions) != 0:
+            qvalues = [self.getQValue(state, action) for action in legalActions]
             bestValue = max(qvalues)
             bestIndices = [index for index in range(len(qvalues)) if qvalues[index] == bestValue]
             chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
             return legalActions[chosenIndex]
         else:
             return None
-        #util.raiseNotDefined()
 
     def getAction(self, state):
         """
@@ -111,19 +102,17 @@ class QLearningAgent(ReinforcementAgent):
         """
         # Pick Action
         legalActions = self.getLegalActions(state)
-        action = None
         "*** YOUR CODE HERE ***"
-        #util.raiseNotDefined()
-        self.startEpisode()
-        # print(self.values.get(self.lastState))
-        if self.lastState is not None:
-            for action in legalActions:
-                factor = self.episodeRewards + self.discount * (self.getValue(self.lastState) - self.getValue(state))
-                self.values[(self.lastState, action)] = self.values[(self.lastState, action)] + self.alpha * factor
-
-        #self.stopEpisode()
-
-        return action
+        if len(legalActions) == 0:
+            return None
+        if util.flipCoin(self.epsilon):
+            return random.choice(legalActions)
+        else:
+            qvalues = [self.getQValue(state, action) for action in legalActions]
+            bestValue = max(qvalues)
+            bestIndices = [index for index in range(len(qvalues)) if qvalues[index] == bestValue]
+            chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
+            return legalActions[chosenIndex]
 
     def update(self, state, action, nextState, reward):
         """
@@ -135,7 +124,9 @@ class QLearningAgent(ReinforcementAgent):
           it will be called on your behalf
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        if state is not None:
+            factor = reward + (self.discount * self.getValue(nextState)) - self.values[(state, action)]
+            self.values[(state, action)] = self.values[(state, action)] + self.alpha * factor
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
