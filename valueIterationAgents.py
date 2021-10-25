@@ -42,9 +42,17 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.discount = discount
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
-
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
+        states = self.mdp.getStates()
+        # print states
+        # for x in range(0, iterations):
+        #     print states[x]
+        #     print self.values
+        for x in range(0, iterations):
+            for y in range(0, len(states)):
+                for z in range(0, len(self.mdp.getPossibleActions(states[y]))):
+
 
 
     def getValue(self, state):
@@ -60,7 +68,16 @@ class ValueIterationAgent(ValueEstimationAgent):
           value function stored in self.values.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #https://datascience.stackexchange.com/questions/9832/what-is-the-q-function-and-what-is-the-v-function-in-reinforcement-learning
+        # Q = reward + discount*value
+        # but, we have several transition states possible so we have to find the expectation of it by multiplying by the prob and adding it.
+        sum = 0
+        transition = self.mdp.getTransitionStatesAndProbs(state, action)
+        for i in range(len(transition)):
+            probablity = transition[i][1]
+            q = self.mdp.getReward(state, action, transition[i][0]) + (self.discount * self.values[transition[i][0]])
+            sum += probablity * q
+        return sum
 
     def computeActionFromValues(self, state):
         """
@@ -72,7 +89,19 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # just calculate the action with the highest q value.
+        actions = self.mdp.getPossibleActions(state)
+        if len(actions) == 0:
+            return None
+        if len(actions) == 1:
+            return actions[0]
+        else:
+            maxq = self.computeQValueFromValues(state, actions[0])
+            bestAction = actions[0]
+            for x in range(1, len(actions)):
+                if self.computeQValueFromValues(state, actions[x]) > maxq:
+                    bestAction = actions[x]
+            return bestAction
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
