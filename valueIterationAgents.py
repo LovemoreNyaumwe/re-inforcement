@@ -50,10 +50,18 @@ class ValueIterationAgent(ValueEstimationAgent):
         #     print states[x]
         #     print self.values
         for x in range(0, iterations):
+            LocalVal = self.values.copy()
             for y in range(0, len(states)):
+                bestQ = None
                 for z in range(0, len(self.mdp.getPossibleActions(states[y]))):
-
-
+                    q = self.computeQValueFromValues(states[y], self.mdp.getPossibleActions(states[y])[z])
+                    if q > bestQ or bestQ == None:
+                        bestQ = q
+                if bestQ == None:
+                    LocalVal[states[y]] = 0
+                else:
+                    LocalVal[states[y]] = bestQ
+            self.values = LocalVal
 
     def getValue(self, state):
         """
@@ -101,7 +109,9 @@ class ValueIterationAgent(ValueEstimationAgent):
             for x in range(1, len(actions)):
                 if self.computeQValueFromValues(state, actions[x]) > maxq:
                     bestAction = actions[x]
+                    maxq = self.computeQValueFromValues(state, actions[x])
             return bestAction
+
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
